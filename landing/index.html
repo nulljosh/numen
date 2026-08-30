@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Numen — a calculator that keeps its work</title>
+<meta name="description" content="A free-form calculator on an infinite canvas. Write expressions anywhere, link one result into another, and every dependent number recalculates as you edit.">
+<meta name="theme-color" content="#5B9BD5">
+<meta property="og:title" content="Numen — a calculator that keeps its work">
+<meta property="og:description" content="Write expressions anywhere on a canvas, link results together, and watch everything downstream recalculate.">
+<meta property="og:type" content="website">
+<link rel="icon" href="icon.svg">
+<style>
+@import url("https://heyitsmejosh.com/tokens.css");
+
+:root {
+  --accent: #5B9BD5;
+  --accent-soft: #eaf3fb;
+  --bg: #ffffff;
+  --bg2: #f7f7f8;
+  --text: #1c1d22;
+  --text2: #5c5f6a;
+  --border: #e6e7ea;
+  --font-body: -apple-system, system-ui, "Inter", "Segoe UI", sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #121316; --bg2: #1a1b1f; --text: #ececf0;
+    --text2: rgba(236,236,240,0.62); --border: rgba(236,236,240,0.12); --accent-soft: #151d26;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #121316; --bg2: #1a1b1f; --text: #ececf0;
+  --text2: rgba(236,236,240,0.62); --border: rgba(236,236,240,0.12); --accent-soft: #151d26;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--text); font-family: var(--font-body); line-height: 1.6; -webkit-font-smoothing: antialiased; }
+.container { max-width: 62rem; margin: 0 auto; padding: 0 1.5rem; }
+.hero { padding: 5.5rem 0 4rem; text-align: center; }
+.hero-icon { width: 88px; height: 88px; border-radius: 20px; }
+h1 { font-size: clamp(2.1rem, 5vw, 3.1rem); margin: 1.25rem 0 0.75rem; letter-spacing: -0.02em; }
+.hero p { font-size: 1.15rem; color: var(--text2); max-width: 36rem; margin: 0 auto; }
+.buttons { display: flex; gap: 0.75rem; justify-content: center; flex-wrap: wrap; margin-top: 2rem; }
+.btn { display: inline-block; padding: 0.7rem 1.5rem; border-radius: 10px; text-decoration: none; font-weight: 600; font-size: 0.98rem; border: 1px solid transparent; }
+.btn-primary { background: var(--accent); color: #fff; }
+.btn-outline { border-color: var(--border); color: var(--text); }
+
+/* a miniature of the real canvas: three cards, the last two fed by the first */
+.sample { max-width: 34rem; margin: 3rem auto 0; text-align: left; background: var(--bg2); border: 1px solid var(--border); border-radius: 14px; padding: 1.25rem; }
+.chip { display: flex; align-items: baseline; justify-content: space-between; gap: 1rem; padding: 0.6rem 0.85rem; background: var(--bg); border: 1px solid var(--border); border-radius: 10px; }
+.chip + .chip { margin-top: 0.6rem; }
+.chip.dep { margin-left: 1.75rem; border-style: dashed; }
+.chip .lbl { display: block; font-size: 0.78rem; color: var(--text2); }
+.chip .expr { font-size: 1rem; }
+.chip .val { color: var(--accent); font-variant-numeric: tabular-nums; font-weight: 600; white-space: nowrap; }
+.caption { margin: 0.9rem 0 0; font-size: 0.85rem; color: var(--text2); text-align: center; }
+
+.features { padding: 4rem 0; }
+h2 { font-size: 1.75rem; text-align: center; margin: 0 0 2.5rem; letter-spacing: -0.01em; }
+.grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr)); gap: 1.25rem; }
+.feature { background: var(--bg2); border: 1px solid var(--border); border-radius: 14px; padding: 1.5rem; }
+.feature h3 { margin: 0 0 0.5rem; font-size: 1.05rem; }
+.feature p { margin: 0; color: var(--text2); font-size: 0.95rem; }
+.closing { padding: 4rem 0 4.5rem; text-align: center; background: var(--bg2); border-top: 1px solid var(--border); }
+.closing p { color: var(--text2); max-width: 32rem; margin: 0 auto; }
+footer { padding: 2.5rem 0 3.5rem; text-align: center; font-size: 0.9rem; color: var(--text2); }
+</style>
+</head>
+<body>
+<section class="hero">
+  <div class="container">
+    <img class="hero-icon" src="icon.svg" alt="Numen icon" width="88" height="88">
+    <h1>Numen</h1>
+    <p>A calculator that keeps its work. Write expressions anywhere on a canvas, click one result to feed it into another, and every number downstream updates the moment you change your mind.</p>
+    <div class="buttons">
+      <a href="/app" class="btn btn-primary">Open Numen</a>
+      <a href="https://github.com/nulljosh/numen" class="btn btn-outline">Source</a>
+    </div>
+    <div class="sample" aria-hidden="true">
+      <div class="chip"><span><span class="lbl">rent</span><span class="expr">1200 * 12</span></span><span class="val">14400</span></div>
+      <div class="chip dep"><span><span class="lbl">what I could save</span><span class="expr">@1 * 0.3</span></span><span class="val">4320</span></div>
+      <div class="chip dep"><span><span class="lbl">left over each month</span><span class="expr">@2 / 12</span></span><span class="val">360</span></div>
+    </div>
+    <p class="caption">Change 1200 and all three numbers move together.</p>
+  </div>
+</section>
+<section class="features">
+  <div class="container">
+    <h2>Made for the sums you do more than once</h2>
+    <div class="grid">
+      <div class="feature"><h3>Linked numbers</h3><p>Click any result to drop a live reference into whatever you are typing. Edit the source and the whole chain recomputes.</p></div>
+      <div class="feature"><h3>An infinite canvas</h3><p>Click empty space to start a new calculation, then drag it wherever it belongs. Nothing scrolls off into history.</p></div>
+      <div class="feature"><h3>Label everything</h3><p>Give each number a name so the page still makes sense next week. It reads like a spreadsheet without the grid.</p></div>
+      <div class="feature"><h3>Graph any expression</h3><p>Put an x in an expression and plot it. The curve redraws as its inputs change.</p></div>
+      <div class="feature"><h3>Works offline</h3><p>Everything runs in the browser and saves on your device. No account, no network, no data leaving the page.</p></div>
+      <div class="feature"><h3>Free and open source</h3><p>No ads, no purchases. Around 400 lines, its own parser, and the source is on GitHub.</p></div>
+    </div>
+  </div>
+</section>
+<section class="closing">
+  <div class="container">
+    <h2>Try a calculation</h2>
+    <p>It opens straight in the browser with an example on the canvas. Nothing to download.</p>
+    <div class="buttons"><a href="/app" class="btn btn-primary">Open Numen</a></div>
+  </div>
+</section>
+<footer><div class="container"><p>Built by Joshua.</p></div></footer>
+</body>
+</html>

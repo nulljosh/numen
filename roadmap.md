@@ -8,6 +8,7 @@
 - Parser + sheet unit tests (`npm test`)
 
 ## Next
+- Landing page at / (bookrank style), app at /app — shipped 2026-08-30
 - iOS/macOS SwiftUI port (copy `charwork/ios/project.yml` as the xcodegen template)
 - Scrub a number by dragging on the digit itself (Tydlig's other signature gesture)
 - Units (`5 km + 300 m`) and a custom keypad for touch
