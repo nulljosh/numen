@@ -14,4 +14,4 @@
 - Undo/redo
 - Multi-device sync — replace localStorage with a KV-backed `functions/api` route
 - App Store name check for "Numen" via the asc-name-creator skill before any ASC record
-- Custom domain numen.heyitsmejosh.com: the local Cloudflare token is DNS-only, so the Pages custom-domain attach 10000s. Add it in the dashboard, or with a token that has Pages:Edit. Live meanwhile at https://numen-kuq.pages.dev
+- Custom domain: live at https://numen.heyitsmejosh.com. Shipped as a Worker with static assets, not Pages, because the Pages custom-domain API rejects both the DNS token and wrangler OAuth; `wrangler deploy` attaches the domain itself from the `[[routes]] custom_domain` line.
