@@ -6,9 +6,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="description" content="Free-form calculator on an infinite canvas" />
     <title>Numen</title>
-  </head>
+    <link rel="manifest" href="/app/manifest.webmanifest">
+  <meta name="theme-color" content="#5B9BD5">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+</head>
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
-  </body>
+    <script>if('serviceWorker' in navigator)addEventListener('load',()=>navigator.serviceWorker.register('/app/sw.js'));</script>
+</body>
 </html>
