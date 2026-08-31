@@ -15,6 +15,7 @@
 
 :root {
   --accent: #5B9BD5;
+  --link: #42719b;
   --accent-soft: #eaf3fb;
   --bg: #ffffff;
   --bg2: #f7f7f8;
@@ -25,7 +26,8 @@
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-    --bg: #121316; --bg2: #1a1b1f; --text: #ececf0;
+    --bg: #121316;
+    --link: #5B9BD5; --bg2: #1a1b1f; --text: #ececf0;
     --text2: rgba(236,236,240,0.62); --border: rgba(236,236,240,0.12); --accent-soft: #151d26;
   }
 }
@@ -80,7 +82,7 @@ h1 { font-size: clamp(2.1rem, 5vw, 3.1rem); margin: 1.25rem 0 0.75rem; letter-sp
 .chip.dep { margin-left: 1.75rem; border-style: dashed; }
 .chip .lbl { display: block; font-size: 0.78rem; color: var(--text2); }
 .chip .expr { font-size: 1rem; }
-.chip .val { color: var(--accent); font-variant-numeric: tabular-nums; font-weight: 600; white-space: nowrap; }
+.chip .val { color: var(--link, var(--accent)); font-variant-numeric: tabular-nums; font-weight: 600; white-space: nowrap; }
 .caption { margin: 0.9rem 0 0; font-size: 0.85rem; color: var(--text2); text-align: center; }
 
 .shots { padding: 1rem 0 3rem; }
