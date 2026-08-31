@@ -36,7 +36,35 @@
 * { box-sizing: border-box; }
 body { margin: 0; background: var(--bg); color: var(--text); font-family: var(--font-body); line-height: 1.6; -webkit-font-smoothing: antialiased; }
 .container { max-width: 62rem; margin: 0 auto; padding: 0 1.5rem; }
-.hero { padding: 5.5rem 0 4rem; text-align: center; }
+.hero { position: relative; isolation: isolate; overflow: hidden; background: var(--accent-soft); padding: 5.5rem 0 4rem; text-align: center; }
+.hero .container { position: relative; z-index: 2; }
+
+/* a slow-drifting wall of expressions, the canvas itself as wallpaper */
+.hero-wall {
+  position: absolute; inset: -8%; z-index: 0;
+  display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; gap: 10px;
+  opacity: 0.5; pointer-events: none; user-select: none;
+}
+.wall-col { display: flex; min-width: 0; flex-direction: column; gap: 10px; }
+.wall-col span {
+  display: block; padding: 0.55rem 0.75rem; background: var(--bg); border: 1px solid var(--border);
+  border-radius: 10px; font-size: 0.85rem; color: var(--text2);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.wall-col.up   { animation: wall-up   var(--dur) linear infinite; }
+.wall-col.down { animation: wall-down var(--dur) linear infinite; }
+@keyframes wall-up   { from { transform: translateY(0); }    to { transform: translateY(-50%); } }
+@keyframes wall-down { from { transform: translateY(-50%); } to { transform: translateY(0); } }
+@media (prefers-reduced-motion: reduce) { .wall-col { animation: none; } }
+
+/* scrim: keeps the headline readable over the wall, in either theme */
+.hero::after {
+  content: ''; position: absolute; inset: 0; z-index: 1; pointer-events: none;
+  background:
+    radial-gradient(ellipse 55% 60% at 50% 45%, var(--bg) 20%, transparent 80%),
+    linear-gradient(var(--bg), transparent 30%, transparent 62%, var(--bg) 96%),
+    color-mix(in srgb, var(--bg) 50%, transparent);
+}
 .hero-icon { width: 88px; height: 88px; border-radius: 20px; }
 h1 { font-size: clamp(2.1rem, 5vw, 3.1rem); margin: 1.25rem 0 0.75rem; letter-spacing: -0.02em; }
 .hero p { font-size: 1.15rem; color: var(--text2); max-width: 36rem; margin: 0 auto; }
@@ -68,6 +96,7 @@ footer { padding: 2.5rem 0 3.5rem; text-align: center; font-size: 0.9rem; color:
 </head>
 <body>
 <section class="hero">
+  <div class="hero-wall" id="heroWall" aria-hidden="true"></div>
   <div class="container">
     <img class="hero-icon" src="icon.svg" alt="Numen icon" width="88" height="88">
     <h1>Numen</h1>
@@ -105,5 +134,38 @@ footer { padding: 2.5rem 0 3.5rem; text-align: center; font-size: 0.9rem; color:
   </div>
 </section>
 <footer><div class="container"><p>Built by Joshua.</p></div></footer>
+<script>
+// Wallpaper of sample expressions, drifting like the canvas is still being worked on.
+(function () {
+  var lines = [
+    'rent = 1200 * 12', '@1 * 0.3', 'sqrt(2) * 100', '18% of 240', '(3 + 4) ^ 2',
+    'hours = 7.5 * 5', '@4 * 52', 'sin(x) * 2', '1e6 / 365', '9 / 5 * c + 32',
+    'tip = 84.20 * 0.18', 'log(1024) / log(2)', 'miles = 42.2 / 1.609', 'x^2 - 4x + 3',
+    '250000 * 0.0525', 'avg = (88 + 91 + 79) / 3', '2 ^ 10', 'pi * 6371^2',
+    'gas = 62 * 1.79', '@7 + @9', 'cos(pi / 3)', '1440 - 8 * 60', 'abs(-17.5)',
+    '(1 + 0.07) ^ 30', 'days = 90 / 7'
+  ];
+  for (var i = lines.length - 1; i > 0; i--) {  // shuffle so the wall differs each visit
+    var j = Math.floor(Math.random() * (i + 1));
+    var t = lines[i]; lines[i] = lines[j]; lines[j] = t;
+  }
+  var wall = document.getElementById('heroWall');
+  var cols = Math.max(3, Math.min(7, Math.ceil(window.innerWidth / 220)));
+  var per = Math.max(4, Math.floor(lines.length / cols));
+  for (var c = 0; c < cols; c++) {
+    var col = document.createElement('div');
+    col.className = 'wall-col ' + (c % 2 ? 'down' : 'up');
+    col.style.setProperty('--dur', (70 + c * 11) + 's');
+    var slice = lines.slice(c * per, (c + 1) * per);
+    slice.concat(slice).forEach(function (text) {  // doubled, so the loop is seamless
+      var el = document.createElement('span');
+      el.textContent = text;
+      col.appendChild(el);
+    });
+    wall.appendChild(col);
+  }
+})();
+</script>
+
 </body>
 </html>
