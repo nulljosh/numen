@@ -1,5 +1,7 @@
 # Numen
 
+**Live:** https://numen.heyitsmejosh.com
+
 A free-form calculator on an infinite canvas — a rebuild of the interaction model from
 Tydlig (iOS, discontinued). Write expressions anywhere, drag them around, and click any
 result to **link** it into the expression you're editing. Change something upstream and
