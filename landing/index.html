@@ -204,15 +204,15 @@ footer { padding: 2.5rem 0 3.5rem; text-align: center; font-size: 0.9rem; color:
 <script>
 // Wallpaper of sample expressions, drifting like the canvas is still being worked on.
 (function () {
-  // Only expressions the parser in src/lib/parse.js actually accepts:
-  // numbers, + - * / ^ ( ), @id references, and x inside a graphed card.
+  // Every line here must parse under src/lib/parse.js — the wall used to advertise
+  // sqrt/sin/log/pi before the parser accepted them.
   var lines = [
-    '1200 * 12', '@1 * 0.3', '(3 + 4) ^ 2', '240 * 0.18', '7.5 * 5',
-    '@4 * 52', '1440 - 8 * 60', '84.20 * 0.18', '250000 * 0.0525', '2 ^ 10',
-    '(88 + 91 + 79) / 3', '42.2 / 1.609', '62 * 1.79', '@7 + @9', '90 / 7',
-    '(1 + 0.07) ^ 30', 'x ^ 2 - 4 * x + 3', '3.14159 * 6371 ^ 2', '365 / 12',
-    '@2 / 12', '1000000 / 365', '18 * 1.13', 'x ^ 3 - x', '55 / (4 * 0.9)',
-    '2.5 ^ 8'
+    'sqrt(2) * 100', '1200 * 12', '@1 * 0.3', 'log(1024) / log(2)', '(3 + 4) ^ 2',
+    '240 * 0.18', 'sin(x) * 2', '7.5 * 5', '@4 * 52', 'pi * 6371 ^ 2',
+    '1440 - 8 * 60', '84.20 * 0.18', '250000 * 0.0525', '2 ^ 10', 'cos(pi / 3)',
+    '(88 + 91 + 79) / 3', '42.2 / 1.609', 'abs(-17.5)', '@7 + @9', '90 / 7',
+    '(1 + 0.07) ^ 30', 'x ^ 2 - 4x + 3', 'round(2.5)', '-3 ^ 2', '2pi * 6371',
+    '1000000 / 365', 'sqrt(x ^ 2 + 9)', '55 / (4 * 0.9)', '2.5 ^ 8', 'exp(1)'
   ];
   for (var i = lines.length - 1; i > 0; i--) {  // shuffle so the wall differs each visit
     var j = Math.floor(Math.random() * (i + 1));

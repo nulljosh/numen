@@ -18,10 +18,12 @@ func check(_ condition: @autoclosure () -> Bool, _ label: String) {
     }
 }
 
-func val(_ s: String) -> Double {
+func val(_ s: String, _ vars: [String: Double] = [:]) -> Double {
     guard let ast = try? parse(s) else { return .nan }
-    return evalAst(ast, lookup: { _ in .nan })
+    return evalAst(ast, lookup: { _ in .nan }, vars: vars)
 }
+
+func close(_ a: Double, _ b: Double, _ eps: Double = 1e-9) -> Bool { abs(a - b) < eps }
 
 func throwsParse(_ s: String) -> Bool {
     do { _ = try parse(s); return false } catch { return true }
@@ -35,12 +37,35 @@ check(val("2^3^2") == 512, "^ is right-assoc")
 check(val("10-2-3") == 5, "- is left-assoc")
 check(val("-3+1") == -2, "unary minus")
 
-// Not in the JS suite: these pin where unary minus sits relative to ^. Numen binds unary
-// TIGHTER than ^, so -3^2 is (-3)^2 = 9 — the opposite of standard math notation, where it
-// is -(3^2) = -9. Pinned here so the native app cannot drift from the web app by accident;
-// if the convention is ever changed it must change in both.
-check(val("-3^2") == 9, "unary binds tighter than ^: -3^2 is (-3)^2")
-check(val("2^-3") == 0.125, "a signed exponent parses via power -> unary")
+// Unary minus binds LOOSER than ^, as in standard notation and every other calculator.
+// This used to be the other way round: -3^2 evaluated to 9. Mirrors the same cases in
+// src/lib/sheet.test.js — the two engines are one grammar and must agree.
+check(val("-3^2") == -9, "unary applies after exponentiation: -3^2 is -(3^2)")
+check(val("-2^2") == -4, "-2^2 is -4")
+check(val("(-3)^2") == 9, "parens still give (-3)^2 = 9")
+check(val("2^-3") == 0.125, "the exponent recurses through unary, so 2^-3 parses")
+
+// MARK: functions and constants
+
+check(close(val("sqrt(2) * 100"), 141.4213562373095), "sqrt")
+check(val("sin(0)") == 0, "sin")
+check(val("cos(pi)") == -1, "cos and the pi constant")
+check(val("log(e)") == 1, "log is the NATURAL log, as in mathjs")
+check(close(val("log(1024) / log(2)"), 10), "log base change")
+check(val("abs(-17.5)") == 17.5, "abs")
+check(val("sqrt(x)", ["x": 9]) == 3, "a function over the graph variable")
+check(throwsParse("sqrt"), "a function without an argument is an error")
+check(throwsParse("sqrt(2"), "an unclosed call is an error")
+
+// MARK: implicit multiplication
+
+check(val("2(3+4)") == 14, "implicit multiply before a paren")
+check(val("4x", ["x": 3]) == 12, "implicit multiply before a name")
+check(close(val("2pi"), Double.pi * 2), "implicit multiply before a constant")
+
+// MARK: leading-dot literals
+
+check(val(".5 + .5") == 1, "a leading-dot literal tokenizes")
 
 // MARK: parse — junk
 

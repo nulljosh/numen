@@ -8,6 +8,12 @@
 - Parser + sheet unit tests (`npm test`)
 
 ## Shipped (2026-08-31)
+- Operator precedence fixed: unary minus now binds looser than `^`, so `-3^2` is -9 rather
+  than 9. It was wrong in both engines and a test pinned the wrong answer.
+- Parser gained single-argument functions (sqrt, sin/cos/tan, log/ln, exp, floor, round,
+  abs, sign, ...), the constants pi/e/tau, implicit multiplication against a name/ref/paren
+  (`4x`, `2(3+4)`, `2pi`, but never `2 3`), and leading-dot literals. Web and Swift engines
+  verified to agree on 34 expressions including the infinities.
 - Native iOS + macOS SwiftUI apps in `ios/` — one xcodegen target, two destinations,
   charwork's template. `parse.js` and `sheet.js` ported to `Parser.swift`/`Sheet.swift`;
   the JS tests ported to `ios/Checks/main.swift` (23 asserts, run with `swiftc`, no XCTest).
@@ -19,14 +25,11 @@
 ## Next
 - **Blocked:** App Store name check for "Numen" via the asc-name-creator skill. No ASC
   record exists yet and none should be created until the name is confirmed available.
-- Decide whether `-3^2` should stay `(-3)^2 = 9`. Numen binds unary minus tighter than `^`,
-  which is the opposite of standard math notation and of what most calculators do. The
-  native port deliberately matches the web app; `ios/Checks/main.swift` pins it, so
-  changing it means changing both.
 - Native gaps vs the web app, both called out in `ContentView.swift`: linking appends
   `@id` at the end of the expression instead of at the caret (SwiftUI's TextField exposes
   no selection range), and cards drag by a grip rather than anywhere on the card.
 - App icon is currently the landing-page mark rendered square. Worth a real icon pass.
+- Functions take one argument only. `min`/`max`/`atan2` need a comma-argument list.
 - Scrub a number by dragging on the digit itself (Tydlig's other signature gesture)
 - Units (`5 km + 300 m`) and a custom keypad for touch
 - Undo/redo

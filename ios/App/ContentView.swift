@@ -149,15 +149,21 @@ private struct CardView: View {
                     .font(.system(size: 17))
                     .foregroundStyle(Theme.fg)
                     .focused(field, equals: node.id)
+                    .layoutPriority(0)
                     #if os(iOS)
                     .autocorrectionDisabled()
                     .textInputAutocapitalization(.never)
                     #endif
 
                 Button(action: onLink) {
+                    // Matches `white-space: nowrap` on .result in src/index.css — a long
+                    // result (sqrt(2) * 100) must shrink the expression field, not wrap
+                    // onto a second line and push the card's chrome around.
                     Text(node.error != nil ? "?" : format(node.value))
                         .font(.system(size: 17, weight: .medium))
                         .monospacedDigit()
+                        .lineLimit(1)
+                        .fixedSize(horizontal: true, vertical: false)
                         .foregroundStyle(Theme.accent)
                         .padding(.horizontal, 6).padding(.vertical, 2)
                         .background(Theme.accent.opacity(0.12), in: RoundedRectangle(cornerRadius: 6))
