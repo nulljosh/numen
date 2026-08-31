@@ -1,8 +1,10 @@
 // Recursive-descent parser for + - * / ^ ( ), numbers, `x` (graph variable),
-// and `@id` references to another node's result.
+// single-argument functions, the constants pi/e/tau, and `@id` references to
+// another node's result.
 //
 // A line-for-line port of src/lib/parse.js. Divergences from the JS are bugs,
-// not improvements — ios/Checks/main.swift pins the grammar.
+// not improvements — ios/Checks/main.swift mirrors src/lib/sheet.test.js so the
+// two implementations cannot drift apart silently.
 
 import Foundation
 
@@ -56,8 +58,8 @@ func tokenize(_ src: String) throws -> [Token] {
         }
 
         // Numbers are matched before identifiers, exactly as the JS does, so
-        // `2x` tokenizes as num(2), name(x) and only fails later as a trailing token.
-        if isDigit(c) {
+        // `2x` tokenizes as num(2), name(x) and becomes an implicit multiplication.
+        if isDigit(c) || (c == "." && i + 1 < s.count && isDigit(s[i + 1])) {
             var j = i
             while j < s.count && isDigit(s[j]) { j += 1 }
             if j + 1 < s.count && s[j] == "." && isDigit(s[j + 1]) {
@@ -79,6 +81,8 @@ func tokenize(_ src: String) throws -> [Token] {
         }
 
         if "+-*/^()".contains(c) {
+            // note: a bare "." never reaches here — it is not in this set and falls through
+            // to the throw below, same as the JS.
             out.append(Token(kind: .sym(c), start: i, end: i + 1))
             i += 1
             continue
@@ -95,13 +99,29 @@ indirect enum Expr {
     case variable(String)
     case neg(Expr)
     case op(Character, Expr, Expr)
+    case call(String, Expr)
 }
 
-// expr := term (('+'|'-') term)*   term := power (('*'|'/') power)*
-// power := unary ('^' power)?      unary := '-' unary | primary
-//
-// Unary minus binds tighter than `^` here, so `-3^2` is (-3)^2 = 9, not -(3^2). That is the
-// opposite of standard math notation; it is the web app's behaviour and the port keeps it.
+// `log` is the NATURAL logarithm, matching mathjs, src/lib/parse.js and curvely's
+// Expression.swift. Changing it here alone makes every log() plot disagree with the web app.
+let functions: [String: (Double) -> Double] = [
+    "sqrt": sqrt, "cbrt": cbrt, "abs": abs,
+    "sin": sin, "cos": cos, "tan": tan,
+    "asin": asin, "acos": acos, "atan": atan,
+    "sinh": sinh, "cosh": cosh, "tanh": tanh,
+    "exp": exp, "floor": floor, "ceil": ceil,
+    "round": { $0.rounded() }, "sign": { $0 > 0 ? 1 : ($0 < 0 ? -1 : 0) },
+    "log": Foundation.log, "ln": Foundation.log,
+    "log10": log10, "log2": log2,
+]
+
+let constants: [String: Double] = ["pi": .pi, "e": M_E, "tau": 2 * .pi]
+
+// expr  := term (('+'|'-') term)*
+// term  := unary (('*'|'/') unary | implicit-multiplication)*
+// unary := '-' unary | power
+// power := primary ('^' unary)?     -- right-assoc; the exponent recurses through unary,
+//                                      so `2^-3` parses and `-3^2` is -(3^2), not (-3)^2.
 func parse(_ src: String) throws -> Expr {
     let ts = try tokenize(src)
     var p = 0
@@ -118,7 +138,21 @@ func parse(_ src: String) throws -> Expr {
         switch t.kind {
         case .num(let v): p += 1; return .num(v)
         case .ref(let id): p += 1; return .ref(id)
-        case .name(let n): p += 1; return .variable(n)
+        case .name(let n):
+            p += 1
+            // A name followed by `(` is a call — but only for a name we know, so `x(2+3)`
+            // stays an implicit multiplication rather than an unknown-function error.
+            if functions[n] != nil {
+                if let next = peek(), case .sym("(") = next.kind {
+                    p += 1
+                    let arg = try expr()
+                    if !eat(")") { throw ParseError("missing ) after \(n)(") }
+                    return .call(n, arg)
+                }
+                throw ParseError("\(n) needs an argument, e.g. \(n)(2)")
+            }
+            if let v = constants[n] { return .num(v) }
+            return .variable(n)
         case .sym(let c):
             if c == "(" {
                 p += 1
@@ -132,20 +166,36 @@ func parse(_ src: String) throws -> Expr {
 
     func unary() throws -> Expr {
         if eat("-") { return .neg(try unary()) }
-        return try primary()
+        return try power()
     }
 
     func power() throws -> Expr {
-        let base = try unary()
-        if eat("^") { return .op("^", base, try power()) }  // right-assoc
+        let base = try primary()
+        if eat("^") { return .op("^", base, try unary()) }  // right-assoc
         return base
     }
 
+    /// `4x`, `2(3+4)`, `2pi` — but NOT `2 3`, so a typo stays an error, not a silent product.
+    func startsImplicitFactor(_ t: Token?) -> Bool {
+        guard let t else { return false }
+        switch t.kind {
+        case .name, .ref: return true
+        case .sym(let c): return c == "("
+        case .num: return false
+        }
+    }
+
     func term() throws -> Expr {
-        var left = try power()
-        while let t = peek(), case .sym(let c) = t.kind, c == "*" || c == "/" {
-            p += 1
-            left = .op(c, left, try power())
+        var left = try unary()
+        while let t = peek() {
+            if case .sym(let c) = t.kind, c == "*" || c == "/" {
+                p += 1
+                left = .op(c, left, try unary())
+            } else if startsImplicitFactor(t) {
+                left = .op("*", left, try unary())
+            } else {
+                break
+            }
         }
         return left
     }
@@ -171,6 +221,7 @@ func refs(_ e: Expr) -> Set<String> {
         switch e {
         case .ref(let id): out.insert(id)
         case .neg(let a): walk(a)
+        case .call(_, let a): walk(a)
         case .op(_, let l, let r): walk(l); walk(r)
         case .num, .variable: break
         }
@@ -190,6 +241,9 @@ func evalAst(_ e: Expr, lookup: (String) -> Double, vars: [String: Double] = [:]
         return vars[n] ?? .nan
     case .neg(let a):
         return -evalAst(a, lookup: lookup, vars: vars)
+    case .call(let name, let a):
+        guard let fn = functions[name] else { return .nan }
+        return fn(evalAst(a, lookup: lookup, vars: vars))
     case .op(let o, let l, let r):
         let a = evalAst(l, lookup: lookup, vars: vars)
         let b = evalAst(r, lookup: lookup, vars: vars)
