@@ -9,10 +9,39 @@
     <link rel="manifest" href="/app/manifest.webmanifest">
   <meta name="theme-color" content="#5B9BD5">
   <meta name="apple-mobile-web-app-capable" content="yes">
-</head>
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="Numen">
+    <meta property="og:title" content="Numen">
+    <meta property="og:description" content="Free-form calculator on an infinite canvas">
+    <meta property="og:url" content="https://numen.heyitsmejosh.com/">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Numen">
+    <meta name="twitter:description" content="Free-form calculator on an infinite canvas">
+  </head>
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
     <script>if('serviceWorker' in navigator)addEventListener('load',()=>navigator.serviceWorker.register('/app/sw.js'));</script>
+
+<!-- share -->
+<style>
+#share-btn{position:fixed;right:16px;bottom:16px;z-index:9999;border:1px solid rgba(128,128,128,.35);
+background:Canvas;color:CanvasText;font:inherit;font-size:14px;padding:8px 14px;border-radius:999px;
+cursor:pointer;box-shadow:0 1px 3px rgba(0,0,0,.12)}
+#share-btn:hover{border-color:rgba(128,128,128,.6)}
+@media print{#share-btn{display:none}}
+</style>
+<button id="share-btn" type="button">Share</button>
+<script>
+(function(){
+  var b=document.getElementById('share-btn');
+  b.addEventListener('click',function(){
+    var d={title:document.title,text:(document.querySelector('meta[name=description]')||{}).content||'',url:location.href};
+    if(navigator.share)navigator.share(d).catch(function(){});
+    else if(navigator.clipboard)navigator.clipboard.writeText(location.href).then(function(){
+      b.textContent='Link copied';setTimeout(function(){b.textContent='Share'},1600);});
+  });
+})();
+</script>
 </body>
 </html>
