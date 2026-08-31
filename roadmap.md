@@ -12,9 +12,11 @@
   charwork's template. `parse.js` and `sheet.js` ported to `Parser.swift`/`Sheet.swift`;
   the JS tests ported to `ios/Checks/main.swift` (23 asserts, run with `swiftc`, no XCTest).
   Both platforms build clean; the Mac app was run and verified against the starter sheet.
+- Landing page at / (bookrank style), app at /app. Fixed hero expression wall (was showing
+  unparseable operators: sqrt, sin, log, %, π); replaced with 25 real expressions. Added
+  Mac + iPhone screenshots. Deployed live at numen.heyitsmejosh.com.
 
 ## Next
-- Landing page at / (bookrank style), app at /app — shipped 2026-08-30
 - **Blocked:** App Store name check for "Numen" via the asc-name-creator skill. No ASC
   record exists yet and none should be created until the name is confirmed available.
 - Decide whether `-3^2` should stay `(-3)^2 = 9`. Numen binds unary minus tighter than `^`,
