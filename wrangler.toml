@@ -9,3 +9,6 @@ directory = "dist"
 [[routes]]
 pattern = "numen.heyitsmejosh.com"
 custom_domain = true
+
+[observability]
+enabled = true
