@@ -5,17 +5,18 @@
 
 **Live:** https://numen.heyitsmejosh.com
 
-A free-form calculator on an infinite canvas — a rebuild of the interaction model from
-Tydlig (iOS, discontinued). Write expressions anywhere, drag them around, and click any
-result to **link** it into the expression you're editing. Change something upstream and
-everything downstream recalculates. Any expression can also plot itself over `x`.
+A calculator with no rows. Write anywhere on an infinite canvas.
 
-- `src/lib/parse.js` — recursive-descent parser (`+ - * / ^ ( )`, numbers, `x`, `@id` links)
-- `src/lib/sheet.js` — the document model: evaluate, edit, cycle-safe dependency walk
-- `src/App.jsx` — the canvas
-- `src/components/Graph.jsx` — inline SVG plot
+This is a rebuild of Tydlig, the iOS app that was discontinued. Type an expression, drag
+it where you like, click any result to **link** it into what you're writing. Change a number
+upstream and everything downstream follows. Any expression can plot itself over `x`.
 
-No math library, no drag library, no chart library.
+- `src/lib/parse.js`: recursive-descent parser. `+ - * / ^ ( )`, numbers, `x`, `@id` links
+- `src/lib/sheet.js`: the document. Evaluate, edit, walk dependencies without looping
+- `src/App.jsx`: the canvas
+- `src/components/Graph.jsx`: inline SVG plot
+
+No math library. No drag library. No chart library.
 
 ```
 npm i && npm test   # 7 tests over the parser + link cascade
