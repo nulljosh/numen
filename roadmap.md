@@ -14,7 +14,7 @@
   abs, sign, ...), the constants pi/e/tau, implicit multiplication against a name/ref/paren
   (`4x`, `2(3+4)`, `2pi`, but never `2 3`), and leading-dot literals. Web and Swift engines
   verified to agree on 34 expressions including the infinities.
-- Native iOS + macOS SwiftUI apps in `ios/` — one xcodegen target, two destinations,
+- Native iOS + macOS SwiftUI apps in `ios/`, one xcodegen target, two destinations,
   charwork's template. `parse.js` and `sheet.js` ported to `Parser.swift`/`Sheet.swift`;
   the JS tests ported to `ios/Checks/main.swift` (23 asserts, run with `swiftc`, no XCTest).
   Both platforms build clean; the Mac app was run and verified against the starter sheet.
@@ -33,5 +33,5 @@
 - Scrub a number by dragging on the digit itself (Tydlig's other signature gesture)
 - Units (`5 km + 300 m`) and a custom keypad for touch
 - Undo/redo
-- Multi-device sync — replace localStorage with a KV-backed `functions/api` route
+- Multi-device sync, replace localStorage with a KV-backed `functions/api` route
 - Custom domain: live at https://numen.heyitsmejosh.com. Shipped as a Worker with static assets, not Pages, because the Pages custom-domain API rejects both the DNS token and wrangler OAuth; `wrangler deploy` attaches the domain itself from the `[[routes]] custom_domain` line.

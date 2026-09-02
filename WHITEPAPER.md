@@ -2,10 +2,11 @@
 
 **v1.0.0** | September 2026
 
-Numen is a free-form calculator on an infinite canvas, a rebuild of the
-interaction model from Tydlig (iOS, discontinued). Write expressions anywhere,
-drag them around, click any result to link it into the expression you are
-editing, and any expression can plot itself over `x`. Live at
+A calculator with no rows.
+
+Numen is an infinite canvas, a rebuild of Tydlig, the iOS app that was discontinued.
+Write an expression anywhere. Drag it. Click a result to link it into what you're
+typing. Any expression can plot itself over `x`. Live at
 [numen.heyitsmejosh.com](https://numen.heyitsmejosh.com).
 
 ## Core Mechanic: Linked Results
