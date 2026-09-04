@@ -3,6 +3,7 @@
   "version": "1.0.1",
   "description": "A calculator with no rows, write anywhere on an infinite canvas, with dynamic linking and plotting.",
   "keywords": ["calculator", "infinite-canvas", "graphing", "linked-expressions"],
+  "license": "MIT",
   "private": true,
   "type": "module",
   "scripts": {
