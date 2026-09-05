@@ -35,3 +35,6 @@
 - Undo/redo
 - Multi-device sync, replace localStorage with a KV-backed `functions/api` route
 - Custom domain: live at https://numen.heyitsmejosh.com. Shipped as a Worker with static assets, not Pages, because the Pages custom-domain API rejects both the DNS token and wrangler OAuth; `wrangler deploy` attaches the domain itself from the `[[routes]] custom_domain` line.
+
+## TUI pilot (2026-09-05)
+- `numen-tui` SwiftPM target (SwiftTUI). `swift build && ./.build/debug/numen-tui "2+2*sqrt(9)"` evaluates via the same Parser.swift the app/canvas use. Needs a real TTY.
