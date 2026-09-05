@@ -28,3 +28,5 @@ No math library. No drag library. No chart library.
 npm i && npm test   # 7 tests over the parser + link cascade
 npm run dev
 ```
+
+**Terminal:** `swift build && ./.build/debug/numen-tui "2+2*sqrt(9)"` — see [tui/](tui/)
