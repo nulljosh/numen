@@ -9,7 +9,12 @@
 <meta property="og:title" content="Numen — a calculator that keeps its work">
 <meta property="og:description" content="Write expressions anywhere on a canvas, link results together, and watch everything downstream recalculate.">
 <meta property="og:type" content="website">
+<script>
+// ponytail: UA sniff, good enough for a mockup. iphone is the default.
+(function(u,d){d=/Android/.test(u)?'android':/iPhone|iPad/.test(u)?'iphone':/Windows/.test(u)?'windows':/Mac/.test(u)?'mac':'iphone';document.documentElement.dataset.device=d})(navigator.userAgent);
+</script>
 <link rel="icon" href="icon.svg">
+<link rel="stylesheet" href="devices.css">
 <style>
 @import url("https://heyitsmejosh.com/tokens.css");
 
@@ -76,7 +81,10 @@ h1 { font-size: clamp(2.1rem, 5vw, 3.1rem); margin: 1.25rem 0 0.75rem; letter-sp
 .btn-outline { border-color: var(--border); color: var(--text); }
 
 /* a miniature of the real canvas: three cards, the last two fed by the first */
-.sample { max-width: 34rem; margin: 3rem auto 0; text-align: left; background: var(--bg2); border: 1px solid var(--border); border-radius: 14px; padding: 1.25rem; }
+.device-mac, .device-windows { --device-w: 480px; }
+.sample { max-width: none; margin: 0; text-align: left; background: var(--bg2); padding: 1.25rem; }
+.chip .expr-input { font: inherit; font-size: 1rem; border: 0; background: none; color: var(--text); width: 100%; }
+.chip .expr-input:focus { outline: 1px solid var(--accent); border-radius: 4px; }
 .chip { display: flex; align-items: baseline; justify-content: space-between; gap: 1rem; padding: 0.6rem 0.85rem; background: var(--bg); border: 1px solid var(--border); border-radius: 10px; }
 .chip + .chip { margin-top: 0.6rem; }
 .chip.dep { margin-left: 1.75rem; border-style: dashed; }
@@ -118,12 +126,16 @@ footer { padding: 2.5rem 0 3.5rem; text-align: center; font-size: 0.9rem; color:
       <a href="/app" class="btn btn-primary">Open Numen</a>
       <a href="https://github.com/nulljosh/numen" class="btn btn-outline">Source</a>
     </div>
-    <div class="sample" aria-hidden="true">
-      <div class="chip"><span><span class="lbl">rent</span><span class="expr">1200 * 12</span></span><span class="val">14400</span></div>
-      <div class="chip dep"><span><span class="lbl">what I could save</span><span class="expr">@1 * 0.3</span></span><span class="val">4320</span></div>
-      <div class="chip dep"><span><span class="lbl">left over each month</span><span class="expr">@2 / 12</span></span><span class="val">360</span></div>
+    <div class="device device-mac" id="demoFrame" data-title="Numen">
+      <div class="device-screen">
+        <div class="sample" id="demo">
+          <div class="chip"><span><span class="lbl">rent</span><input class="expr-input" id="demoE1" value="1200 * 12"></span><span class="val" id="demoV1"></span></div>
+          <div class="chip dep"><span><span class="lbl">what I could save</span><input class="expr-input" id="demoE2" value="@1 * 0.3"></span><span class="val" id="demoV2"></span></div>
+          <div class="chip dep"><span><span class="lbl">left over each month</span><input class="expr-input" id="demoE3" value="@2 / 12"></span><span class="val" id="demoV3"></span></div>
+        </div>
+      </div>
     </div>
-    <p class="caption">Change 1200 and all three numbers move together.</p>
+    <p class="caption">This is the real parser. Edit any field — the rest recompute live.</p>
   </div>
 </section>
 <section class="shots">
@@ -238,6 +250,31 @@ footer { padding: 2.5rem 0 3.5rem; text-align: center; font-size: 0.9rem; color:
 })();
 </script>
 
+<script src="parse.js"></script>
+<script>
+// Live demo: the same parser the app ships, wired to three chained cells.
+(function () {
+  var ids = ['1', '2', '3'];
+  var inputs = ids.map(function (n) { return document.getElementById('demoE' + n); });
+  var outs = ids.map(function (n) { return document.getElementById('demoV' + n); });
+  if (!inputs[0]) return;
+  function recompute() {
+    var values = {};
+    inputs.forEach(function (input, i) {
+      var n = ids[i];
+      try {
+        var ast = parse(input.value);
+        values[n] = evalAst(ast, function (id) { return values[id]; });
+        outs[i].textContent = Number.isFinite(values[n]) ? +values[n].toFixed(4) : 'err';
+      } catch (e) {
+        outs[i].textContent = 'err';
+      }
+    });
+  }
+  inputs.forEach(function (input) { input.addEventListener('input', recompute); });
+  recompute();
+})();
+</script>
 
 <!-- share -->
 <style>
