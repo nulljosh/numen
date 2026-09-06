@@ -1,6 +1,6 @@
 # Numen Technical Whitepaper
 
-**v1.0.0** | September 2026
+**v1.0.1** | September 2026
 
 A calculator with no rows.
 
