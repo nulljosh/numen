@@ -31,6 +31,12 @@ npm run dev
 
 **Terminal:** `swift build && ./.build/debug/numen-tui "2+2*sqrt(9)"` — see [tui/](tui/)
 
+## Screenshots
+
+<p>
+<img src="screenshots/numen-1.jpg" alt="Numen">
+</p>
+
 ## Architecture
 
 <img src="architecture.svg" width="600">
