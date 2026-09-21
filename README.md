@@ -31,6 +31,8 @@ npm run dev
 
 **Terminal:** `swift build && ./.build/debug/numen-tui "2+2*sqrt(9)"` — see [tui/](tui/)
 
+<img src="progress.svg" width="460">
+
 ## Screenshots
 
 <p>
