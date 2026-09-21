@@ -1,20 +1,22 @@
 # Architecture
 
-A free-form calculator on an infinite canvas. Write anywhere, drag expressions where you like, click a result to link it into what you're writing. Change a number and everything downstream updates. Runs on web (Vite + React), iOS/macOS (SwiftUI), and watchOS (SwiftUI). The parser and evaluator are implemented twice: once in JavaScript and once in Swift, pinned to the same test fixtures so they never diverge.
+Numen is a calculator you write on like a sheet of paper. There are no rows or columns. Put a sum anywhere on the page, drag it where you want it, and click any answer to feed it into the next line. Change one number and every result built on it updates right away.
+
+It runs in a browser, on iPhone, Mac, and Apple Watch, and from the terminal. The part that reads your typing and works out the answer is written twice, once for the web and once for the Apple apps. Both are held to the same set of test cases so the two can never quietly disagree.
 
 ## How it runs
 
-**Web:** User navigates to numen.heyitsmejosh.com. React component mounts, loads the sheet from `localStorage` (or starts blank). Parser tokenizes and parses expressions. Evaluator walks the sheet's dependency graph and computes each node's value. Sheet state updates when the user edits text, moves nodes, or toggles graph mode. No server backend.
+**Web:** You open numen.heyitsmejosh.com. The page reopens your last sheet from the browser's own storage, or starts you blank. Each time you type, it reads the sum, works out which other sums it depends on, and recalculates those first. Moving a card or turning on its graph saves too. Nothing is sent anywhere; there is no server.
 
-**iOS/macOS:** App launches, initializes the sheet from `UserDefaults`. SwiftUI views render nodes as draggable cards. Parser and evaluator are Swift implementations of the same grammar and algorithms as the web version. Sheet persists to `UserDefaults` on every change.
+**iOS/macOS:** The app reopens your sheet from local storage on the device. Each sum is a card you can drag. The Swift code follows exactly the same rules as the web version. Every change is saved as you make it.
 
-**watchOS:** Simplified card view. Taps drill into a detail sheet. Same parser and evaluator as the main app.
+**watchOS:** A simple list of cards. Tap one to see it in full. Same maths underneath as the phone app.
 
-**TUI:** SwiftPM executable takes an expression as a command-line argument, parses it, and evaluates it. Prints the result.
+**Terminal:** A small command-line program. Hand it a sum, it prints the answer.
 
 ## Parsing and evaluation
 
-The parser is a recursive-descent implementation supporting `+ - * / ^ ( )`, numbers (including `.5`), the variable `x` (for graphing), single-argument functions (sqrt, sin, log, etc.), constants (pi, e, tau), and `@id` references to another node's result. Both implementations must stay in lockstep; divergence is a bug.
+The parser is the part that reads what you typed and turns it into something the computer can work out. It handles `+ - * / ^` and brackets, numbers like `.5`, the letter `x` when you want a graph, functions like sqrt, sin and log, the constants pi, e and tau, and `@id` to pull in the answer from another card. It works left to right, breaking each sum down into smaller pieces. The web and Swift versions have to behave identically; any difference between them is a bug.
 
 | File | What it owns |
 |---|---|
