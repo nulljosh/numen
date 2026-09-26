@@ -17,11 +17,13 @@
 <link rel="stylesheet" href="devices.css">
 <style>
 @import url("https://heyitsmejosh.com/tokens.css");
+:root{--accent-soft:color-mix(in srgb,var(--accent) 9%,var(--bg));}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--link:var(--clay);}}
+:root[data-theme="dark"]{--link:var(--clay);}
 
 :root {
-  --accent: #5B9BD5;
-  --link: #42719b;
-  --accent-soft: #eaf3fb;
+  --accent: var(--clay);
+  --link: var(--clay-deep);
   --font-body: -apple-system, system-ui, "Inter", "Segoe UI", sans-serif;
 }
 * { box-sizing: border-box; }
