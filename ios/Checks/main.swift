@@ -1,0 +1,137 @@
+// Engine self-check. Ported from src/lib/sheet.test.js, plus two cases the JS suite
+// lacks that pin grammar choices a port can silently get wrong.
+//
+// Run with no build system, no framework:
+//   swiftc -o /tmp/numencheck ios/App/Parser.swift ios/App/Sheet.swift ios/Checks/main.swift && /tmp/numencheck
+//
+// ponytail: plain asserts in a main.swift instead of an XCTest target — the logic under
+// test is pure Foundation, so a test target would only add a build graph to maintain.
+
+import Foundation
+
+var checks = 0
+func check(_ condition: @autoclosure () -> Bool, _ label: String) {
+    checks += 1
+    guard condition() else {
+        FileHandle.standardError.write("FAIL: \(label)\n".data(using: .utf8)!)
+        exit(1)
+    }
+}
+
+func val(_ s: String, _ vars: [String: Double] = [:]) -> Double {
+    guard let ast = try? parse(s) else { return .nan }
+    return evalAst(ast, lookup: { _ in .nan }, vars: vars)
+}
+
+func close(_ a: Double, _ b: Double, _ eps: Double = 1e-9) -> Bool { abs(a - b) < eps }
+
+func throwsParse(_ s: String) -> Bool {
+    do { _ = try parse(s); return false } catch { return true }
+}
+
+// MARK: parse — precedence and associativity
+
+check(val("2+3*4") == 14, "precedence: * before +")
+check(val("(2+3)*4") == 20, "parens override precedence")
+check(val("2^3^2") == 512, "^ is right-assoc")
+check(val("10-2-3") == 5, "- is left-assoc")
+check(val("-3+1") == -2, "unary minus")
+
+// Unary minus binds LOOSER than ^, as in standard notation and every other calculator.
+// This used to be the other way round: -3^2 evaluated to 9. Mirrors the same cases in
+// src/lib/sheet.test.js — the two engines are one grammar and must agree.
+check(val("-3^2") == -9, "unary applies after exponentiation: -3^2 is -(3^2)")
+check(val("-2^2") == -4, "-2^2 is -4")
+check(val("(-3)^2") == 9, "parens still give (-3)^2 = 9")
+check(val("2^-3") == 0.125, "the exponent recurses through unary, so 2^-3 parses")
+
+// MARK: functions and constants
+
+check(close(val("sqrt(2) * 100"), 141.4213562373095), "sqrt")
+check(val("sin(0)") == 0, "sin")
+check(val("cos(pi)") == -1, "cos and the pi constant")
+check(val("log(e)") == 1, "log is the NATURAL log, as in mathjs")
+check(close(val("log(1024) / log(2)"), 10), "log base change")
+check(val("abs(-17.5)") == 17.5, "abs")
+check(val("sqrt(x)", ["x": 9]) == 3, "a function over the graph variable")
+check(throwsParse("sqrt"), "a function without an argument is an error")
+check(throwsParse("sqrt(2"), "an unclosed call is an error")
+
+// MARK: implicit multiplication
+
+check(val("2(3+4)") == 14, "implicit multiply before a paren")
+check(val("4x", ["x": 3]) == 12, "implicit multiply before a name")
+check(close(val("2pi"), Double.pi * 2), "implicit multiply before a constant")
+
+// MARK: leading-dot literals
+
+check(val(".5 + .5") == 1, "a leading-dot literal tokenizes")
+
+// MARK: parse — junk
+
+check(throwsParse("2+"), "rejects a dangling operator")
+check(throwsParse("(2+3"), "rejects a missing paren")
+check(throwsParse("2 3"), "rejects two numbers in a row")
+
+// MARK: linked numbers — an edit cascades two hops
+
+do {
+    var s = Sheet()
+    var a = "", b = "", c = ""
+    (s, a) = addNode(s, text: "2+2")
+    (s, b) = addNode(s, text: "@\(a) * 10")
+    (s, c) = addNode(s, text: "@\(b) + 1")
+    func v(_ id: String) -> Double? { s.nodes.first { $0.id == id }?.value }
+
+    check(v(a) == 4 && v(b) == 40 && v(c) == 41, "initial cascade")
+    s = update(s, a, text: "3+3")
+    check(v(a) == 6 && v(b) == 60 && v(c) == 61, "edit cascades through two hops")
+}
+
+// MARK: dependents, and surviving a deleted reference
+
+do {
+    var s = Sheet()
+    var a = "", b = ""
+    (s, a) = addNode(s, text: "5")
+    (s, b) = addNode(s, text: "@\(a) * 2")
+
+    check(dependents(s, a) == [b], "reports dependents")
+    s = removeNode(s, a)
+    check(s.nodes.first { $0.id == b }?.value?.isNaN == true, "dangling ref is NaN, not a crash")
+}
+
+// MARK: a reference cycle resolves to NaN instead of hanging
+
+do {
+    var s = Sheet()
+    var a = "", b = ""
+    (s, a) = addNode(s, text: "1")
+    (s, b) = addNode(s, text: "@\(a) + 1")
+    s = update(s, a, text: "@\(b) + 1")
+
+    check(s.nodes.allSatisfy { $0.value?.isNaN == true }, "cycle yields NaN everywhere and terminates")
+}
+
+// MARK: a syntax error stays local to its own node
+
+do {
+    var s = Sheet()
+    var a = "", b = ""
+    (s, a) = addNode(s, text: "2+")
+    (s, b) = addNode(s, text: "9")
+
+    check(s.nodes.first { $0.id == a }?.error != nil, "the bad node carries the error")
+    check(s.nodes.first { $0.id == b }?.value == 9, "its neighbour still evaluates")
+}
+
+// MARK: format
+
+check(format(0.1 + 0.2) == "0.3", "trims float noise")
+check(format(1.0 / 0.0) == "∞", "names positive infinity")
+check(format(-1.0 / 0.0) == "-∞", "names negative infinity")
+check(format(Double.nan) == "—", "names NaN")
+check(format(nil) == "", "an unevaluated node shows nothing")
+check(format(14400) == "14400", "a whole number has no decimal tail")
+
+print("ok — \(checks) checks passed")

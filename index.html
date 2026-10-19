@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/icon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Free-form calculator on an infinite canvas" />
+    <title>Numen</title>
+    <link rel="manifest" href="/app/manifest.webmanifest">
+  <meta name="theme-color" content="#f5f0e4">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="Numen">
+    <meta property="og:title" content="Numen">
+    <meta property="og:description" content="Free-form calculator on an infinite canvas">
+    <meta property="og:url" content="https://numen.jaybulb.com/">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Numen">
+    <meta name="twitter:description" content="Free-form calculator on an infinite canvas">
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.jsx"></script>
+    <script>if('serviceWorker' in navigator)addEventListener('load',()=>navigator.serviceWorker.register('/app/sw.js'));</script>
+</body>
+</html>

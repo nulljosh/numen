@@ -1,0 +1,18 @@
+name = "numen"
+compatibility_date = "2025-01-01"
+
+# Workers static assets, not Pages: `wrangler deploy` can attach the custom domain itself
+# (the Pages custom-domain API rejects both our tokens).
+[assets]
+directory = "dist"
+
+[[routes]]
+pattern = "numen.heyitsmejosh.com"
+custom_domain = true
+
+[[routes]]
+pattern = "numen.jaybulb.com"
+custom_domain = true
+
+[observability]
+enabled = true

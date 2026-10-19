@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Numen — a calculator that keeps its work</title>
+<meta name="description" content="A free-form calculator on an infinite canvas. Write expressions anywhere, link one result into another, and every dependent number recalculates as you edit.">
+<meta name="theme-color" content="#f5f0e4">
+<meta property="og:title" content="Numen — a calculator that keeps its work">
+<meta property="og:description" content="Write expressions anywhere on a canvas, link results together, and watch everything downstream recalculate.">
+<meta property="og:type" content="website">
+<script>
+// ponytail: UA sniff, good enough for a mockup. iphone is the default.
+(function(u,d){d=/Android/.test(u)?'android':/iPhone|iPad/.test(u)?'iphone':/Windows/.test(u)?'windows':/Mac/.test(u)?'mac':'iphone';document.documentElement.dataset.device=d})(navigator.userAgent);
+</script>
+<link rel="icon" href="icon.svg">
+<link rel="stylesheet" href="devices.css">
+<style>
+@import url("https://jaybulb.com/tokens.css");
+:root{--accent-soft:color-mix(in srgb,var(--accent) 9%,var(--bg));}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--link:var(--clay);}}
+:root[data-theme="dark"]{--link:var(--clay);}
+
+:root {
+  --accent: var(--clay);
+  --link: var(--clay-deep);
+  --font-body: -apple-system, system-ui, "Inter", "Segoe UI", sans-serif;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--text); font-family: var(--font-body); line-height: 1.6; -webkit-font-smoothing: antialiased; }
+.container { max-width: 62rem; margin: 0 auto; padding: 0 1.5rem; }
+.hero { position: relative; isolation: isolate; overflow: hidden; background: var(--accent-soft); padding: 5.5rem 0 4rem; text-align: center; }
+.hero .container { position: relative; z-index: 2; }
+
+/* a slow-drifting wall of expressions, the canvas itself as wallpaper */
+.hero-wall {
+  position: absolute; inset: -8%; z-index: 0;
+  display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; gap: 10px;
+  opacity: 0.5; pointer-events: none; user-select: none;
+}
+.wall-col { display: flex; min-width: 0; flex-direction: column; gap: 10px; }
+.wall-col span {
+  display: block; padding: 0.55rem 0.75rem; background: var(--bg); border: 1px solid var(--border);
+  border-radius: 10px; font-size: 0.85rem; color: var(--text2);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.wall-col.up   { animation: wall-up   var(--dur) linear infinite; }
+.wall-col.down { animation: wall-down var(--dur) linear infinite; }
+@keyframes wall-up   { from { transform: translateY(0); }    to { transform: translateY(-50%); } }
+@keyframes wall-down { from { transform: translateY(-50%); } to { transform: translateY(0); } }
+@media (prefers-reduced-motion: reduce) { .wall-col { animation: none; } }
+
+/* scrim: keeps the headline readable over the wall, in either theme */
+.hero::after {
+  content: ''; position: absolute; inset: 0; z-index: 1; pointer-events: none;
+  background:
+    radial-gradient(ellipse 55% 60% at 50% 45%, var(--bg) 20%, transparent 80%),
+    linear-gradient(var(--bg), transparent 30%, transparent 62%, var(--bg) 96%),
+    color-mix(in srgb, var(--bg) 50%, transparent);
+}
+.hero-icon { width: 88px; height: 88px; border-radius: 20px; }
+h1 { font-size: clamp(2.1rem, 5vw, 3.1rem); margin: 1.25rem 0 0.75rem; letter-spacing: -0.02em; }
+.hero p { font-size: 1.15rem; color: var(--text2); max-width: 36rem; margin: 0 auto; }
+.buttons { display: flex; gap: 0.75rem; justify-content: center; flex-wrap: wrap; margin-top: 2rem; }
+.btn { display: inline-block; padding: 0.7rem 1.5rem; border-radius: 10px; text-decoration: none; font-weight: 600; font-size: 0.98rem; border: 1px solid transparent; }
+.btn-primary { background: var(--accent); color: #fff; }
+.btn-outline { border-color: var(--border); color: var(--text); }
+
+/* a miniature of the real canvas: three cards, the last two fed by the first */
+.device-mac, .device-windows { --device-w: 480px; }
+.sample { max-width: none; margin: 0; text-align: left; background: var(--bg2); padding: 1.25rem; }
+.chip .expr-input { font: inherit; font-size: 1rem; border: 0; background: none; color: var(--text); width: 100%; }
+.chip .expr-input:focus { outline: 1px solid var(--accent); border-radius: 4px; }
+.chip { display: flex; align-items: baseline; justify-content: space-between; gap: 1rem; padding: 0.6rem 0.85rem; background: var(--bg); border: 1px solid var(--border); border-radius: 10px; }
+.chip + .chip { margin-top: 0.6rem; }
+.chip.dep { margin-left: 1.75rem; border-style: dashed; }
+.chip .lbl { display: block; font-size: 0.78rem; color: var(--text2); }
+.chip .expr { font-size: 1rem; }
+.chip .val { color: var(--link, var(--accent)); font-variant-numeric: tabular-nums; font-weight: 600; white-space: nowrap; }
+.caption { margin: 0.9rem 0 0; font-size: 0.85rem; color: var(--text2); text-align: center; }
+
+.shots { padding: 1rem 0 3rem; }
+.shots .pair { display: flex; align-items: flex-end; justify-content: center; gap: 1.25rem; flex-wrap: wrap; }
+.shots .frame {
+  border: 1px solid var(--border); border-radius: 14px;
+  overflow: hidden; background: var(--bg2); line-height: 0;
+}
+.shots .desk { flex: 1 1 32rem; max-width: 44rem; }
+.shots .phone { flex: 0 0 13rem; max-width: 13rem; border-radius: 22px; }
+.shots img { width: 100%; height: auto; display: block; }
+.shots .caption { line-height: 1.6; margin-top: 1.1rem; }
+
+.features { padding: 4rem 0; }
+h2 { font-size: 1.75rem; text-align: center; margin: 0 0 2.5rem; letter-spacing: -0.01em; }
+.grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr)); gap: 1.25rem; }
+.feature { background: var(--bg2); border: 1px solid var(--border); border-radius: 14px; padding: 1.5rem; }
+.feature h3 { margin: 0 0 0.5rem; font-size: 1.05rem; }
+.feature p { margin: 0; color: var(--text2); font-size: 0.95rem; }
+.closing { padding: 4rem 0 4.5rem; text-align: center; background: var(--bg2); border-top: 1px solid var(--border); }
+.closing p { color: var(--text2); max-width: 32rem; margin: 0 auto; }
+footer { padding: 2.5rem 0 3.5rem; text-align: center; font-size: 0.9rem; color: var(--text2); }
+</style>
+</head>
+<body>
+<section class="hero">
+  <div class="hero-wall" id="heroWall" aria-hidden="true"></div>
+  <div class="container">
+    <img class="hero-icon" src="icon.svg" alt="Numen icon" width="88" height="88">
+    <h1>A calculator that keeps its work.</h1>
+    <div class="buttons">
+      <a href="/app" class="btn btn-primary">Open Numen</a>
+      <a href="https://github.com/nulljosh/numen" class="btn btn-outline">Source</a>
+    </div>
+    <div class="device device-mac" id="demoFrame" data-title="Numen">
+      <div class="device-screen">
+        <div class="sample" id="demo">
+          <div class="chip"><span><span class="lbl">rent</span><input class="expr-input" id="demoE1" value="1200 * 12"></span><span class="val" id="demoV1"></span></div>
+          <div class="chip dep"><span><span class="lbl">what I could save</span><input class="expr-input" id="demoE2" value="@1 * 0.3"></span><span class="val" id="demoV2"></span></div>
+          <div class="chip dep"><span><span class="lbl">left over each month</span><input class="expr-input" id="demoE3" value="@2 / 12"></span><span class="val" id="demoV3"></span></div>
+        </div>
+      </div>
+    </div>
+    <p class="caption">This is the real parser. Edit any field — the rest recompute live.</p>
+  </div>
+</section>
+<section class="shots">
+  <div class="container">
+    <div class="pair">
+      <div class="frame desk">
+        <img src="shot-mac.png" alt="Numen on macOS: six linked calculation cards on a canvas, one of them graphing a parabola." width="1100" height="700" loading="lazy">
+      </div>
+      <div class="frame phone">
+        <img src="shot-ios.png" alt="Numen on iPhone: the same linked cards stacked down the screen." width="414" height="900" loading="lazy">
+      </div>
+    </div>
+    <p class="caption">Native on Mac and iPhone too — the same canvas, same linked numbers, nothing in a browser.</p>
+  </div>
+</section>
+<section class="features">
+  <div class="container">
+    <h2>Made for the sums you do more than once</h2>
+    <div class="grid">
+      <div class="feature"><h3>Linked numbers</h3><p>Click any result to drop a live reference into whatever you are typing. Edit the source and the whole chain recomputes.</p></div>
+      <div class="feature"><h3>An infinite canvas</h3><p>Click empty space to start a new calculation, then drag it wherever it belongs. Nothing scrolls off into history.</p></div>
+      <div class="feature"><h3>Label everything</h3><p>Give each number a name so the page still makes sense next week. It reads like a spreadsheet without the grid.</p></div>
+      <div class="feature"><h3>Graph any expression</h3><p>Put an x in an expression and plot it. The curve redraws as its inputs change.</p></div>
+      <div class="feature"><h3>Works offline</h3><p>Everything runs in the browser and saves on your device. No account, no network, no data leaving the page.</p></div>
+      <div class="feature"><h3>Free and open source</h3><p>No ads, no purchases. Around 400 lines, its own parser, and the source is on GitHub.</p></div>
+    </div>
+  </div>
+</section>
+<section class="closing">
+  <div class="container">
+    <h2>Try a calculation</h2>
+    <p>It opens straight in the browser with an example on the canvas. Nothing to download.</p>
+    <div class="buttons"><a href="/app" class="btn btn-primary">Open Numen</a></div>
+  </div>
+</section>
+
+<style>
+#install-anywhere{padding:5rem 0;border-top:1px solid color-mix(in srgb, currentColor 14%, transparent);}
+#install-anywhere .xp-wrap{max-width:960px;margin:0 auto;padding:0 1.5rem;}
+#install-anywhere h2{font-size:clamp(1.6rem,3.4vw,2.4rem);margin:0 0 .6rem;letter-spacing:-.02em;}
+#install-anywhere .xp-lead{max-width:46ch;margin:0 0 2.5rem;opacity:.7;line-height:1.55;}
+#install-anywhere .xp-grid{display:grid;gap:1rem;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));}
+#install-anywhere .xp-card{background:color-mix(in srgb, currentColor 4%, transparent);border:1px solid color-mix(in srgb, currentColor 14%, transparent);border-radius:12px;padding:1.25rem;display:flex;flex-direction:column;gap:.5rem;}
+#install-anywhere .xp-card h3{margin:0;font-size:1rem;letter-spacing:-.01em;}
+#install-anywhere .xp-card p{margin:0;font-size:.9rem;line-height:1.5;opacity:.7;flex:1;}
+#install-anywhere .xp-card a{margin-top:.5rem;font-size:.875rem;font-weight:500;color:var(--accent,currentColor);text-decoration:none;}
+#install-anywhere .xp-card a:hover{text-decoration:underline;}
+</style>
+
+<section id="install-anywhere">
+  <div class="xp-wrap">
+    <h2>Install it anywhere.</h2>
+    <p class="xp-lead">Numen runs on every platform. On Windows, Linux and Android it installs straight from the browser &mdash; no store, no download, no runtime. It gets a real window, its own icon, and keeps working offline.</p>
+    <div class="xp-grid">
+    <div class="xp-card">
+      <h3>Windows</h3>
+      <p>Open the web app in Edge or Chrome, then <strong>Install Numen</strong> from the address bar. It lands in the Start Menu like any other app.</p>
+      <a href="https://numen.jaybulb.com/app">Open &amp; install &rarr;</a>
+    </div>
+    <div class="xp-card">
+      <h3>Android</h3>
+      <p>Open the web app in Chrome, then <strong>Add to Home screen</strong>. Full screen, no browser chrome, works offline.</p>
+      <a href="https://numen.jaybulb.com/app">Open &amp; install &rarr;</a>
+    </div>
+    <div class="xp-card">
+      <h3>Linux</h3>
+      <p>Same as Windows &mdash; install the web app from Chrome or Chromium and it runs in its own window.</p>
+      <a href="https://numen.jaybulb.com/app">Open &amp; install &rarr;</a>
+    </div>
+    <div class="xp-card">
+      <h3>Web</h3>
+      <p>Nothing to install. The same app, in any modern browser.</p>
+      <a href="https://numen.jaybulb.com/app">Open the web app &rarr;</a>
+    </div>
+    </div>
+  </div>
+</section>
+
+<footer><div class="container"><p>Built by Joshua.</p></div></footer>
+<script>
+// Wallpaper of sample expressions, drifting like the canvas is still being worked on.
+(function () {
+  // Every line here must parse under src/lib/parse.js — the wall used to advertise
+  // sqrt/sin/log/pi before the parser accepted them.
+  var lines = [
+    'sqrt(2) * 100', '1200 * 12', '@1 * 0.3', 'log(1024) / log(2)', '(3 + 4) ^ 2',
+    '240 * 0.18', 'sin(x) * 2', '7.5 * 5', '@4 * 52', 'pi * 6371 ^ 2',
+    '1440 - 8 * 60', '84.20 * 0.18', '250000 * 0.0525', '2 ^ 10', 'cos(pi / 3)',
+    '(88 + 91 + 79) / 3', '42.2 / 1.609', 'abs(-17.5)', '@7 + @9', '90 / 7',
+    '(1 + 0.07) ^ 30', 'x ^ 2 - 4x + 3', 'round(2.5)', '-3 ^ 2', '2pi * 6371',
+    '1000000 / 365', 'sqrt(x ^ 2 + 9)', '55 / (4 * 0.9)', '2.5 ^ 8', 'exp(1)'
+  ];
+  for (var i = lines.length - 1; i > 0; i--) {  // shuffle so the wall differs each visit
+    var j = Math.floor(Math.random() * (i + 1));
+    var t = lines[i]; lines[i] = lines[j]; lines[j] = t;
+  }
+  var wall = document.getElementById('heroWall');
+  var cols = Math.max(3, Math.min(7, Math.ceil(window.innerWidth / 220)));
+  var per = Math.max(4, Math.floor(lines.length / cols));
+  for (var c = 0; c < cols; c++) {
+    var col = document.createElement('div');
+    col.className = 'wall-col ' + (c % 2 ? 'down' : 'up');
+    col.style.setProperty('--dur', (70 + c * 11) + 's');
+    var slice = lines.slice(c * per, (c + 1) * per);
+    slice.concat(slice).forEach(function (text) {  // doubled, so the loop is seamless
+      var el = document.createElement('span');
+      el.textContent = text;
+      col.appendChild(el);
+    });
+    wall.appendChild(col);
+  }
+})();
+</script>
+
+<script src="parse.js"></script>
+<script>
+// Live demo: the same parser the app ships, wired to three chained cells.
+(function () {
+  var ids = ['1', '2', '3'];
+  var inputs = ids.map(function (n) { return document.getElementById('demoE' + n); });
+  var outs = ids.map(function (n) { return document.getElementById('demoV' + n); });
+  if (!inputs[0]) return;
+  function recompute() {
+    var values = {};
+    inputs.forEach(function (input, i) {
+      var n = ids[i];
+      try {
+        var ast = parse(input.value);
+        values[n] = evalAst(ast, function (id) { return values[id]; });
+        outs[i].textContent = Number.isFinite(values[n]) ? +values[n].toFixed(4) : 'err';
+      } catch (e) {
+        outs[i].textContent = 'err';
+      }
+    });
+  }
+  inputs.forEach(function (input) { input.addEventListener('input', recompute); });
+  recompute();
+})();
+</script>
+<style>
+html.js .reveal{opacity:0;transform:translateY(20px)}
+html.js .reveal.in-view{opacity:1;transform:translateY(0);transition:opacity .6s ease,transform .6s ease}
+@media (prefers-reduced-motion: reduce){html.js .reveal{opacity:1!important;transform:none!important;transition:none!important}}
+</style>
+<script>
+document.documentElement.classList.add('js');
+(function(){
+  var reduced = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (!reduced && 'IntersectionObserver' in window) {
+    var targets = document.querySelectorAll('section.features .feature, .xp-card, section.shots, section.closing');
+    targets.forEach(function(el){ el.classList.add('reveal'); });
+    var io = new IntersectionObserver(function(entries){
+      entries.forEach(function(e){ if (e.isIntersecting) { e.target.classList.add('in-view'); io.unobserve(e.target); } });
+    }, {threshold: 0.15});
+    targets.forEach(function(el){ io.observe(el); });
+  }
+  if (!reduced) {
+    var layer = document.getElementById('heroWall');
+    if (layer) {
+      var ticking = false;
+      window.addEventListener('scroll', function(){
+        if (!ticking) {
+          requestAnimationFrame(function(){
+            layer.style.transform = 'translateY(' + ((window.scrollY || 0) * 0.35) + 'px)';
+            ticking = false;
+          });
+          ticking = true;
+        }
+      }, {passive: true});
+    }
+  }
+})();
+</script>
+</body>
+</html>
