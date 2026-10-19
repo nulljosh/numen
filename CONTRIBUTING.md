@@ -3,7 +3,7 @@
 ## Setup
 
 ```
-git clone https://github.com/nulljosh/numen.git
+git clone https://github.com/nulljosh/labs.git
 cd numen
 npm install
 ```
