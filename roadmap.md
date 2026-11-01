@@ -40,4 +40,4 @@
 - `numen-tui` SwiftPM target (SwiftTUI). `swift build && ./.build/debug/numen-tui "2+2*sqrt(9)"` evaluates via the same Parser.swift the app/canvas use. Needs a real TTY.
 
 ## Ingested 2026-10-30
-- [ ] Refresh it, Hermes landing page
+- [x] (11-01: house layout live, tagline H1, live parser demo) Refresh it, Hermes landing page
