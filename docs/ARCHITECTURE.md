@@ -39,7 +39,7 @@ The parser is the part that reads what you typed and turns it into something the
 | `src/App.css` | App styling. Dark theme with the Numen brand colors. Card layout, typography, interactions. |
 | `index.html` | Static HTML root. Vite injects scripts here. Contains `<div id="root">` where the React app mounts. |
 | `public/sw.js` | Service worker. Caches the app shell for offline use. `register()` called from the app. |
-| `landing/` | Marketing landing page. `index.html` is the page itself, wrapped in device frames. `devices.css` styles the iPhone/macOS/watchOS device containers. `parse.js` is a stripped-down parser demo for the landing. |
+| `landing/` | Marketing landing page. `index.html` is the page in the house layout (cyllene/landing is the reference), the live parser demo under the hero. `landing.css` and `tokens.css` style it, `footer-band.js` draws the engraved footer, `art/` holds halftone masks from public domain works, `parse.js` is the parser the demo runs. The two `shot-*.png` files are for the README. |
 | `vite.config.js` | Vite build config. Outputs to `dist/`. |
 | `package.json` + `package-lock.json` | NPM dependencies: React, Vite, testing tools. |
 
