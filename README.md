@@ -1,8 +1,6 @@
 <img src="public/icon.svg" width="56" height="56" alt="Numen icon">
 
-
 ![version](https://img.shields.io/badge/version-v1.0.1-blue) ![license](https://img.shields.io/badge/license-MIT-green)
-
 
 **Live:** https://numen.jaybulb.com
 
