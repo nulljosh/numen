@@ -7,10 +7,6 @@ compatibility_date = "2025-01-01"
 directory = "dist"
 
 [[routes]]
-pattern = "numen.heyitsmejosh.com"
-custom_domain = true
-
-[[routes]]
 pattern = "numen.jaybulb.com"
 custom_domain = true
 

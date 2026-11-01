@@ -1,6 +1,6 @@
 # Numen
 
-Free-form calculator on an infinite canvas. Live at numen.heyitsmejosh.com.
+Free-form calculator on an infinite canvas. Live at numen.jaybulb.com.
 
 - `src/` is Vite + React. `src/lib` is the parser and evaluator (cycle-safe sheets), `src/components` the draggable cards and SVG graphing
 - `ios/` SwiftUI, `kmp/` a real Kotlin port of the parser and evaluator (2026-09-04), `landing/` the marketing page

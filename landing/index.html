@@ -17,6 +17,7 @@
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="stylesheet" href="tokens.css">
 <link rel="stylesheet" href="landing.css">
+<link rel="stylesheet" href="hero.css?v=1">
 <script src="landing.js" defer></script>
 </head>
 <body>
@@ -38,7 +39,8 @@
      attributed to Jacopo de' Barbari (Capodimonte). -->
 <main id="top">
 <section class="hero">
-  <div class="wrap center">
+  <div class="hero-bg" aria-hidden="true" inert><div class="nwall" id="nwall"></div></div>
+  <div class="wrap center hero-copy">
     <p class="label">Numen, a calculator on a canvas</p>
     <h1 class="hero-h1">A calculator that keeps its work.</h1>
     <p class="lead">Link one result into the next and the whole chain recomputes.</p>
@@ -49,17 +51,6 @@
     <p class="fine">Free in the browser. No account, nothing leaves your device.</p>
   </div>
 
-  <div class="demo-wrap reveal">
-    <div class="stage">
-      <div class="art stage-art" style="--img: url(art/melencolia.png)" aria-hidden="true"></div>
-      <div class="tool sample" id="demo">
-        <div class="chip"><span><label class="lbl" for="demoE1">rent</label><input class="expr-input" id="demoE1" value="1200 * 12"></span><span class="val" id="demoV1"></span></div>
-        <div class="chip dep"><span><label class="lbl" for="demoE2">what I could save</label><input class="expr-input" id="demoE2" value="@1 * 0.3"></span><span class="val" id="demoV2"></span></div>
-        <div class="chip dep"><span><label class="lbl" for="demoE3">left over each month</label><input class="expr-input" id="demoE3" value="@2 / 12"></span><span class="val" id="demoV3"></span></div>
-      </div>
-    </div>
-    <p class="demo-hint">The real parser. Edit any line and the rest recompute.</p>
-  </div>
 </section>
 
 <section class="band" id="features">
@@ -110,30 +101,7 @@
 </footer>
 
 <script src="parse.js"></script>
-<script>
-// Live demo: the same parser the app ships, wired to three chained cells.
-(function () {
-  var ids = ['1', '2', '3'];
-  var inputs = ids.map(function (n) { return document.getElementById('demoE' + n); });
-  var outs = ids.map(function (n) { return document.getElementById('demoV' + n); });
-  if (!inputs[0]) return;
-  function recompute() {
-    var values = {};
-    inputs.forEach(function (input, i) {
-      var n = ids[i];
-      try {
-        var ast = parse(input.value);
-        values[n] = evalAst(ast, function (id) { return values[id]; });
-        outs[i].textContent = Number.isFinite(values[n]) ? +values[n].toFixed(4) : 'err';
-      } catch (e) {
-        outs[i].textContent = 'err';
-      }
-    });
-  }
-  inputs.forEach(function (input) { input.addEventListener('input', recompute); });
-  recompute();
-})();
-</script>
+<script src="hero.js?v=1"></script>
 <script src="footer-band.js" defer></script>
 </body>
 </html>
