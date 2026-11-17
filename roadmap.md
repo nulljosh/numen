@@ -40,3 +40,6 @@
 - `numen-tui` SwiftPM target (SwiftTUI). `swift build && ./.build/debug/numen-tui "2+2*sqrt(9)"` evaluates via the same Parser.swift the app/canvas use. Needs a real TTY.
 
 ## Ingested 2026-10-30
+
+## Ingested 2026-11-16
+- [ ] (Note "Numen") How can we bump this project? Next steps?
