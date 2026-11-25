@@ -54,14 +54,14 @@ struct GraphView: View {
             if p.hi.isFinite {
                 ctx.draw(
                     Text(p.hi.formatted(.number.precision(.significantDigits(3))))
-                        .font(.system(size: 9)).foregroundColor(Theme.muted),
+                        .font(.caption2).foregroundColor(Theme.muted),
                     at: CGPoint(x: Self.pad, y: 8), anchor: .leading
                 )
             }
             if p.lo.isFinite {
                 ctx.draw(
                     Text(p.lo.formatted(.number.precision(.significantDigits(3))))
-                        .font(.system(size: 9)).foregroundColor(Theme.muted),
+                        .font(.caption2).foregroundColor(Theme.muted),
                     at: CGPoint(x: Self.pad, y: Self.h - 8), anchor: .leading
                 )
             }

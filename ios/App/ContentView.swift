@@ -50,10 +50,10 @@ struct ContentView: View {
                 // On the Mac the window title already says Numen — a second one in the
                 // header just reads as a duplicate.
                 #if !os(macOS)
-                Text("Numen").font(.system(size: 17, weight: .semibold))
+                Text("Numen").font(.system(.body, weight: .semibold))
                 #endif
                 Text("Tap anywhere to write. Tap another card's result to link it in — everything downstream recalculates.")
-                    .font(.system(size: 12)).foregroundStyle(Theme.muted)
+                    .font(.caption).foregroundStyle(Theme.muted)
             }
             .frame(maxWidth: .infinity, alignment: .leading)
             .padding(.horizontal, 16).padding(.vertical, 12)
@@ -140,13 +140,13 @@ private struct CardView: View {
 
             TextField("label", text: Binding(get: { node.label }, set: onLabel))
                 .textFieldStyle(.plain)
-                .font(.system(size: 12))
+                .font(.caption)
                 .foregroundStyle(Theme.muted)
 
             HStack(alignment: .firstTextBaseline, spacing: 8) {
                 TextField("2 + 2", text: Binding(get: { node.text }, set: onText))
                     .textFieldStyle(.plain)
-                    .font(.system(size: 17))
+                    .font(.body)
                     .foregroundStyle(Theme.fg)
                     .focused(field, equals: node.id)
                     .layoutPriority(0)
@@ -160,7 +160,7 @@ private struct CardView: View {
                     // result (sqrt(2) * 100) must shrink the expression field, not wrap
                     // onto a second line and push the card's chrome around.
                     Text(node.error != nil ? "?" : format(node.value))
-                        .font(.system(size: 17, weight: .medium))
+                        .font(.system(.body, weight: .medium))
                         .monospacedDigit()
                         .lineLimit(1)
                         .fixedSize(horizontal: true, vertical: false)
@@ -173,7 +173,7 @@ private struct CardView: View {
             }
 
             if let error = node.error {
-                Text(error).font(.system(size: 12)).foregroundStyle(Theme.danger)
+                Text(error).font(.caption).foregroundStyle(Theme.danger)
             }
 
             if node.graph, let ast = node.ast {
@@ -185,7 +185,7 @@ private struct CardView: View {
                 Button("delete", action: onDelete)
             }
             .buttonStyle(.plain)
-            .font(.system(size: 12))
+            .font(.caption)
             .foregroundStyle(Theme.muted)
         }
         .padding(.horizontal, 12).padding(.top, 6).padding(.bottom, 8)
